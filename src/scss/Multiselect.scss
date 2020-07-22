@@ -1,0 +1,49 @@
+@import "./vars";
+@import '~tippy.js/dist/tippy.css';
+//@import '~tippy.js/themes/light.css';
+.multiselectWrapper {
+  * {
+    box-sizing: border-box;
+  }
+
+  //background:blue;
+  .multiselect-mainLabel {
+    position: relative;
+    display: block;
+    &:hover{
+      cursor: pointer;
+    }
+    &:after {
+      display: block;
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      border-top: 5px solid $cursorColor;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+    }
+  }
+}
+
+.multiselect_tippy {
+  * {
+    box-sizing: border-box;
+  }
+
+  .tippy-content {
+    padding: 0;
+  }
+
+  .form-group.form-group--search {
+    .form-control--search {
+      display: block;
+      width: 100%;
+    }
+  }
+}
+
+.hide {
+  display: none;
+}
