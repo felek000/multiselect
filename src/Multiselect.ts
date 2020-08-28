@@ -110,17 +110,20 @@ class Multiselect {
   private _createTemplateWrapper(): string {
     let template: string = `
                             <div class="multiselectWrapper js-multiselectWrapper">
-                                <label class="multiselect-mainLabel js-multiselect-mainLabel">${this.options?.mainLabelName}</label>
+                                <button type="button" role="button"tabindex="0" class="multiselect-mainLabel js-multiselect-mainLabel">${this.options?.mainLabelName}</button>
                             </div>
                             `;
     return template;
   }
+
   private _appendMainWrap(template: string): void {
     this.parentElement!.insertAdjacentHTML("beforeend", template);
   }
+
   private _hideSelect(): void {
     this.element!.style.display = "none";
   }
+
   private _initEvents(): void | boolean {
     this.tippyInstance = this._initDropdown();
     if (!this.tippyInstance) {
@@ -133,6 +136,7 @@ class Multiselect {
       this._lisentoChangesSelect();
     }
   }
+
   private _lisentoChangesSelect(): void {
     const that = this;
     const labelMain = this.wrapper?.querySelector(
@@ -145,6 +149,7 @@ class Multiselect {
       this.options?.mainLabelNameCallback(labelMain, this.element);
     });
   }
+
   private _searchOption(popper: HTMLElement): void {
     const that = this;
     const input = popper.querySelector(".js-tippy-search") as HTMLInputElement;
@@ -161,15 +166,19 @@ class Multiselect {
       }, 200)
     );
   }
+
   private _showSearchMessageAjax() {
     this._showMessage(this.options?.searching, true);
   }
+
   private _showNoResultMessage() {
     this._showMessage();
   }
+
   private _showNoResultMessageAjax() {
     this._showMessage(this.options?.searching, true);
   }
+
   private _showMessage(
     message: string = "Brak wyników",
     ajax: boolean = false
@@ -182,9 +191,17 @@ class Multiselect {
     if (ajax) {
       wrapForInputs.innerHTML = messageTemplate;
     } else {
-      wrapForInputs.innerHTML += messageTemplate;
+      const noResult = wrapForInputs.querySelector(
+        ".js-multiselect-no-result"
+      ) as HTMLElement;
+      if (!noResult) {
+        wrapForInputs.innerHTML += messageTemplate;
+      } else {
+        noResult.classList.remove("hide");
+      }
     }
   }
+
   private _removeMessage() {
     const popper = (<InstanceTippy>this.tippyInstance).popper as HTMLElement;
     const wrapForInputs = popper.querySelector(
@@ -197,6 +214,7 @@ class Multiselect {
       noMessageEl.remove();
     }
   }
+
   private _getElemntfromUrl(
     value: string,
     name: string
@@ -206,6 +224,7 @@ class Multiselect {
     }
     return this.options?.ajax?.getData(value, name) ?? null;
   }
+
   private async _showMatchedElementsAjax(value: string, name: string) {
     const that = this;
     const popper = (<InstanceTippy>that.tippyInstance).popper as HTMLElement;
@@ -238,6 +257,7 @@ class Multiselect {
       that._showNoResultMessageAjax();
     }
   }
+
   private _showSelectedElements(wrapForInputs: HTMLElement): void {
     const that = this;
     const selectedOptions = that.element.querySelectorAll(
@@ -254,6 +274,7 @@ class Multiselect {
     });
     wrapForInputs.innerHTML = template;
   }
+
   private _showMatchedElements(value: string): void | boolean {
     if (!this.tippyInstance) {
       return false;
@@ -282,6 +303,7 @@ class Multiselect {
       this._showNoResultMessage();
     }
   }
+
   private _lisenChangesInputDropdown(wrap: HTMLElement): void {
     const wrapInputs = wrap.querySelector(".js-tippy-wrap-list") as HTMLElement;
     wrapInputs.addEventListener("change", (e: Event) => {
@@ -312,6 +334,15 @@ class Multiselect {
       this.options?.mainLabelNameCallback(labelMain, this.element);
     });
   }
+
+  private assignEscapeKey(e: KeyboardEvent, instance: InstanceTippy) {
+    if (e.code === "Escape") {
+      const reference = instance.reference as HTMLElement;
+      reference.querySelector("button")?.focus();
+      instance.hide();
+    }
+  }
+
   private _initDropdown(): InstanceTippy | null {
     const that = this;
     let tippyInstance = null;
@@ -326,7 +357,15 @@ class Multiselect {
         appendTo: "parent",
         placement: "bottom-start",
         content: that.options?.tippy?.content,
+        onHide(instance) {
+          document.body.removeEventListener("keyup", e =>
+            that.assignEscapeKey(e, instance)
+          );
+        },
         onShow(instance) {
+          document.body.addEventListener("keyup", e =>
+            that.assignEscapeKey(e, instance)
+          );
           const popper = instance.popper as HTMLElement;
           const wrapForInputs = popper.querySelector(
             ".js-tippy-wrap-list"
@@ -335,6 +374,8 @@ class Multiselect {
             HTMLOptionElement
           >;
           const name = that.element.name;
+          const tippyBox = popper.querySelector(".tippy-box") as HTMLElement;
+          tippyBox.tabIndex = 1;
           that._clearFormGroupTemplates(instance);
           that._removeMessage();
           options.forEach(option => {
@@ -359,9 +400,11 @@ class Multiselect {
           // selectWrap.classList.add("show");
         },
         onMount(instance) {
+          console.log(instance);
           const wrap = instance.popper as HTMLElement;
           const reference = instance.reference as HTMLElement;
           const { width } = instance.reference.getBoundingClientRect();
+
           wrap.classList.add("multiselect_tippy");
           reference.style.width = width + "px";
           const tippyBox = instance.popper.querySelector(
@@ -381,6 +424,7 @@ class Multiselect {
     }
     return tippyInstance;
   }
+
   private _clearFormGroupTemplates(instance: any): void {
     const popper = instance.popper as HTMLElement;
     const formGroups = popper.querySelectorAll(
@@ -390,6 +434,7 @@ class Multiselect {
       form.remove();
     });
   }
+
   private _buildFormGroupTemplates(
     name: string,
     value: string,
@@ -409,25 +454,25 @@ const multiselect2 = new Multiselect(".js-multiselect2", {
   debug: true
 });
 
-const multiselect = new Multiselect(".js-multiselect", {
-  debug: true,
-  ajax: {
-    getData(value: string, name: string): Promise<any> | null {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          const tmpObject: Array<formGroup> = [
-            {
-              name: name,
-              value: value,
-              text: value
-            }
-          ];
-          resolve(tmpObject);
-        }, 1000);
-      });
-    }
-  }
-});
+// const multiselect = new Multiselect(".js-multiselect", {
+//   debug: true,
+//   ajax: {
+//     getData(value: string, name: string): Promise<any> | null {
+//       return new Promise((resolve, reject) => {
+//         setTimeout(() => {
+//           const tmpObject: Array<formGroup> = [
+//             {
+//               name: name,
+//               value: value,
+//               text: value
+//             }
+//           ];
+//           resolve(tmpObject);
+//         }, 1000);
+//       });
+//     }
+//   }
+// });
 
 // multiselect.AddOption(123, "treść");
 // multiselect.SelectValue(123);
